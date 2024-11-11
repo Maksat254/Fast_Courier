@@ -21,9 +21,8 @@ Route::post('/orders/{order}/decline', [OrderController::class, 'declineOrder'])
     ->name('orders.decline');
 
 Route::middleware('auth:sanctum')->group(function () {
-
-
+    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+    Route::post('orders', [OrderController::class, 'store']);
+    Route::put('orders/{order}/reassign', [OrderController::class, 'reassignCourier']);
 });
-Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-Route::post('orders', [OrderController::class, 'store']);
-Route::put('orders/{order}/reassign', [OrderController::class, 'reassignCourier']);
+

@@ -1,15 +1,21 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\User;
-use App\Notifications\NewOrderAssigned;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -23,126 +29,44 @@ class OrderController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $order = Order::create($validated);
+        $order = $this->orderService->createOrder($validated);
 
-        $courier = User::role('courier')->inRandomOrder()->first();
+        $assignedOrder = $this->orderService->assignCourier($order);
 
-        if ($courier) {
-            $order->courier_id = $courier->id;
-            $order->save();
-
-            $courier->notify(new NewOrderAssigned($order));
+        if ($assignedOrder) {
+            return response()->json(['message' => 'Заказ создан и передан курьеру.'], 201);
         }
 
-        return response()->json(['message' => 'Заказ создан и передан курьеру.'], 201);
+        return response()->json(['message' => 'Нет доступных курьеров для принятия заказа'], 422);
     }
-
-
 
     public function reassignCourier(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);
 
-        $newCourier = User::role('courier')->where('id', '!=', $order->courier_id)->inRandomOrder()->first();
-
-        if ($newCourier) {
-            $order->courier_id = $newCourier->id;
-            $order->save();
-
-            $newCourier->notify(new NewOrderAssigned($order));
+        if ($order->courier_accepted) {
+            return response()->json(['message' => 'Заказ уже принят курьером и не может быть переназначен'], 422);
         }
 
-        return response()->json(['message' => 'Order reassigned to another courier'], 200);
+        $assignedOrder = $this->orderService->reassignCourier($order);
+
+        if ($assignedOrder) {
+            return response()->json(['message' => 'Заказ переназначен другому курьеру'], 200);
+        }
+
+        return response()->json(['message' => 'Нет доступных курьеров для переназначения'], 422);
     }
 
-    public function updateStatus(Request $request, Order $order)
+    public function acceptOrder($orderId)
     {
+        $order = Order::findOrFail($orderId);
 
-        $user = Auth::user();
+        $acceptedOrder = $this->orderService->acceptOrder($order);
 
-        $newStatus = $request->input('status');
-        switch ($newStatus) {
-            case Order::STATUS_NEW:
-                $order->updateStatus(Order::STATUS_NEW);
-                break;
-
-            case Order::STATUS_PREPARING:
-                if ($user->hasRole('restaurant')) {
-                    $order->updateStatus(Order::STATUS_PREPARING);
-                }
-                break;
-
-            case Order::STATUS_READY:
-                if ($user->hasRole('restaurant')) {
-                    $order->updateStatus(Order::STATUS_READY);
-                    // Уведомление курьера о готовности заказа
-                    // Здесь можно добавить логику уведомления, если нужно
-                }
-                break;
-
-
-            case Order::COURIER_STATUS_ASSIGNED:
-                if ($user->hasRole('courier')) {
-                    $order->updateStatus(Order::COURIER_STATUS_ASSIGNED);
-                }
-                break;
-
-            case Order::COURIER_STATUS_WAITING:
-                if ($user->hasRole('courier')) {
-                    $order->updateStatus(Order::COURIER_STATUS_WAITING);
-                }
-                break;
-
-            case Order::COURIER_STATUS_PICKED_UP:
-                if ($user->hasRole('courier')) {
-                    $order->updateStatus(Order::COURIER_STATUS_PICKED_UP);
-                    $order->updateStatus(Order::STATUS_ON_THE_WAY);
-
-                }
-                break;
-
-            case Order::COURIER_STATUS_ON_THE_WAY:
-                if ($user->hasRole('courier')) {
-                    $order->updateStatus(Order::COURIER_STATUS_ON_THE_WAY);
-                }
-                break;
-
-            case Order::COURIER_STATUS_DELIVERED:
-                if ($user->hasRole('courier')) {
-                    $order->updateStatus(Order::COURIER_STATUS_DELIVERED);
-                    $order->updateStatus(Order::STATUS_DELIVERED);
-                    notify(Order::STATUS_DELIVERED);
-
-                }
-                break;
-
-
-            case Order::CLIENT_STATUS_PREPARING:
-                if ($user->hasRole('client')) {
-                    $order->updateStatus(Order::CLIENT_STATUS_PREPARING);
-                }
-                break;
-
-            case Order::CLIENT_STATUS_ON_THE_WAY:
-                if ($user->hasRole('client')) {
-                    $order->updateStatus(Order::CLIENT_STATUS_ON_THE_WAY);
-                }
-                break;
-
-            case Order::CLIENT_STATUS_DELIVERED:
-                if ($user->hasRole('client')) {
-                    $order->updateStatus(Order::CLIENT_STATUS_DELIVERED);
-                }
-                break;
-
-            default:
-                return response()->json(['error' => 'Некорректный статус'], 400);
+        if ($acceptedOrder) {
+            return response()->json(['message' => 'Заказ принят курьером'], 200);
         }
 
-        $order->save();
-
-        return response()->json(['status' => 'Статус заказа обновлен']);
+        return response()->json(['message' => 'Заказ уже принят'], 400);
     }
-
-
 }

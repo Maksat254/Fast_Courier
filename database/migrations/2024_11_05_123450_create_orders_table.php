@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('courier_id')->nullable()->constrained('couriers')->onDelete('set null');
+            $table->boolean('courier_accepted')->default(false);
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->foreignId('restaurant_id')->constrained('restaurants')->onDelete('cascade');
             $table->string('delivery_address');
