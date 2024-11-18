@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('message');
-            $table->string('type'); // Тип уведомления (Email, Push)
+            $table->string('type');
             $table->string('status')->default('Pending');
             $table->timestamps();
         });
