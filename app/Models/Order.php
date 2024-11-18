@@ -26,7 +26,6 @@ class Order extends Model
     const CLIENT_STATUS_DELIVERED = 'Доставлено клиенту';
 
     protected $fillable = [
-        'courier_id',
         'client_id',
         'restaurant_id',
         'status',

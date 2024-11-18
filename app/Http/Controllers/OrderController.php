@@ -1,7 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Courier;
 use App\Models\Order;
+use App\Models\Restaurant;
 use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
@@ -19,7 +21,6 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'courier_id' => 'required|exists:couriers,id',
             'client_id' => 'required|exists:clients,id',
             'restaurant_id' => 'required|exists:restaurants,id',
             'delivery_address' => 'required|string',
@@ -29,44 +30,70 @@ class OrderController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $order = $this->orderService->createOrder($validated);
+        $restaurant = Restaurant::find($validated['restaurant_id']);
+        $restaurantLat = $restaurant->latitude;
+        $restaurantLon = $restaurant->longitude;
 
-        $assignedOrder = $this->orderService->assignCourier($order);
+        $order = new Order();
+        $order->client_id = $validated['client_id'];
+        $order->restaurant_id = $validated['restaurant_id'];
+        $order->delivery_address = $validated['delivery_address'];
+        $order->pickup_address = $validated['pickup_address'];
+        $order->total_amount = $validated['total_amount'];
+        $order->status = $validated['status'];
+        $order->description = $validated['description'] ?? '';
+        $order->courier_accepted = false;
+        $order->save();
 
-        if ($assignedOrder) {
+        $courier = Courier::whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get()
+            ->map(function ($courier) use ($restaurantLat, $restaurantLon) {
+                $courier->distance = calculateDistance($restaurantLat, $restaurantLon, $courier->latitude, $courier->longitude);
+                return $courier;
+            })
+            ->sortBy('distance')
+            ->first();
+
+        if ($courier) {
+            $order->courier_id = $courier->id;
+            $order->save();
+        }
+
+        if ($courier) {
+            $order->courier_id = $courier->id;
+            $order->save();
+
+//            $courier->notify(new \App\Notifications\NewOrderAssigned($order));
+
             return response()->json(['message' => 'Заказ создан и передан курьеру.'], 201);
         }
 
-        return response()->json(['message' => 'Нет доступных курьеров для принятия заказа'], 422);
+        return response()->json(['message' => 'Нет доступных курьеров для назначения.'], 422);
+
     }
 
-    public function reassignCourier(Request $request, $orderId)
-    {
-        $order = Order::findOrFail($orderId);
+}
+/**
+ * Функция для расчёта расстояния между двумя точками.
+ *
+ * @param float $lat1
+ * @param float $lon1
+ * @param float $lat2
+ * @param float $lon2
+ * @return float
+ */
+function calculateDistance($lat1, $lon1, $lat2, $lon2)
+{
+    $earthRadius = 6371;
 
-        if ($order->courier_accepted) {
-            return response()->json(['message' => 'Заказ уже принят курьером и не может быть переназначен'], 422);
-        }
+    $latDelta = deg2rad($lat2 - $lat1);
+    $lonDelta = deg2rad($lon2 - $lon1);
 
-        $assignedOrder = $this->orderService->reassignCourier($order);
+    $a = sin($latDelta / 2) * sin($latDelta / 2) +
+        cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+        sin($lonDelta / 2) * sin($lonDelta / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-        if ($assignedOrder) {
-            return response()->json(['message' => 'Заказ переназначен другому курьеру'], 200);
-        }
-
-        return response()->json(['message' => 'Нет доступных курьеров для переназначения'], 422);
-    }
-
-    public function acceptOrder($orderId)
-    {
-        $order = Order::findOrFail($orderId);
-
-        $acceptedOrder = $this->orderService->acceptOrder($order);
-
-        if ($acceptedOrder) {
-            return response()->json(['message' => 'Заказ принят курьером'], 200);
-        }
-
-        return response()->json(['message' => 'Заказ уже принят'], 400);
-    }
+    return $earthRadius * $c;
 }

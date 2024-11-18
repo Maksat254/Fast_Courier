@@ -1,67 +1,57 @@
 <?php
-
-
 namespace App\Services;
 
+use App\Models\Courier;
 use App\Models\Order;
-use App\Models\User;
-use App\Notifications\NewOrderAssigned;
+use App\Models\Restaurant;
 
 class OrderService
 {
-    public function createOrder(array $validated)
+    /**
+     * Создаёт новый заказ.
+     */
+    public function createOrder(array $data, Restaurant $restaurant): Order
     {
-        $order = Order::create($validated);
+        $order = new Order();
+        $order->client_id = $data['client_id'];
+        $order->restaurant_id = $data['restaurant_id'];
+        $order->delivery_address = $data['delivery_address'];
+        $order->pickup_address = $data['pickup_address'];
+        $order->total_amount = $data['total_amount'];
+        $order->status = $data['status'];
+        $order->description = $data['description'] ?? '';
         $order->courier_accepted = false;
         $order->save();
 
         return $order;
     }
 
-    public function assignCourier(Order $order)
+    /**
+     * Назначает ближайшего курьера для заказа.
+     */
+    public function assignCourierToOrder(Order $order, Restaurant $restaurant): bool
     {
-        $courier = User::role('courier')->inRandomOrder()->first();
+        $restaurantLat = $restaurant->latitude;
+        $restaurantLon = $restaurant->longitude;
+
+        $courier = Courier::whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->get()
+            ->map(function ($courier) use ($restaurantLat, $restaurantLon) {
+                $courier->distance = calculateDistance($restaurantLat, $restaurantLon, $courier->latitude, $courier->longitude);
+                return $courier;
+            })
+            ->sortBy('distance')
+            ->first();
 
         if ($courier) {
             $order->courier_id = $courier->id;
             $order->save();
-            $courier->notify(new NewOrderAssigned($order));
 
-            return $order;
+            // $courier->notify(new \App\Notifications\NewOrderAssigned($order));
+            return true;
         }
 
-        return null;
-    }
-
-    public function reassignCourier(Order $order)
-    {
-        $newCourier = User::role('courier')->whereDoesntHave('orders', function ($query) {
-            $query->where('status', 'В процессе');
-        })->where('id', '!=', $order->courier_id)->inRandomOrder()->first();
-
-        if ($newCourier) {
-            $order->courier_id = $newCourier->id;
-            $order->save();
-
-            $newCourier->notify(new NewOrderAssigned($order));
-
-            return $order;
-        }
-
-        return null;
-    }
-
-    public function acceptOrder(Order $order)
-    {
-        if ($order->courier_accepted) {
-            return false;
-        }
-
-        $order->courier_accepted = true;
-        $order->status = 'В процессе';
-        $order->save();
-
-        return $order;
+        return false;
     }
 }
-

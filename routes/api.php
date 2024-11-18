@@ -1,28 +1,39 @@
 <?php
 
+use App\Http\Controllers\Admin\CourierController;
+use App\Http\Controllers\Admin\RestaurantController;
+use App\Http\Controllers\CourierLocationController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\RestaurantLocationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
+Route::post('/register', [RegisteredUserController::class, 'store']);
+Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth:sanctum');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/register', [RegisteredUserController::class, 'store']);
-Route::post('/login', [AuthenticatedSessionController::class, 'store']);
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('auth:sanctum');
+Route::post('orders', [OrderController::class, 'store']);
+Route::put('orders/{orderId}/reassign', [OrderController::class, 'reassignCourier']);
+Route::put('orders/{orderId}/accept', [OrderController::class, 'acceptOrder']);
+Route::put('orders/{orderId}/confirm', [OrderController::class, 'confirmOrder']);
 
+Route::middleware('auth:sanctum')->post('/courier/update-location', [CourierLocationController::class, 'updateLocation']);
 
-Route::post('/orders/{order}/decline', [OrderController::class, 'declineOrder'])
-    ->middleware('auth:sanctum')
-    ->name('orders.decline');
+Route::middleware('auth:sanctum')->post('/restaurant/{id}/location', [RestaurantLocationController::class, 'updateLocation']);
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus']);
-    Route::post('orders', [OrderController::class, 'store']);
-    Route::put('orders/{order}/reassign', [OrderController::class, 'reassignCourier']);
+Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/restaurants', [RestaurantController::class, 'store']);
+    Route::post('/couriers', [CourierController::class, 'store']);
+    Route::resource('restaurants', RestaurantController::class);
+    Route::resource('couriers', CourierController::class);
 });
 
+Route::middleware(['auth:sanctum', 'role:courier'])->group(function () {
+    Route::post('/orders/{orderId}/confirm', [OrderController::class, 'confirmOrder']);
+});

@@ -7,15 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Courier extends Model
 {
-    use HasFactory;
     protected $fillable = [
         'name',
         'email',
         'phone',
+        'latitude',
+        'longitude',
     ];
 
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
+
 }

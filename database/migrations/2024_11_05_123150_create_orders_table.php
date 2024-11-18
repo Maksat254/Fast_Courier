@@ -19,13 +19,13 @@ return new class extends Migration
             $table->foreignId('restaurant_id')->constrained('restaurants')->onDelete('cascade');
             $table->string('delivery_address');
             $table->string('pickup_address');
+            $table->text('description')->nullable();
             $table->string('status')->default('pending');
             $table->decimal('total_amount', 8, 2);
 
             $table->timestamps();
         });
     }
-
     /**
      * Reverse the migrations.
      */

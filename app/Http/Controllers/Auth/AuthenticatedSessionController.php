@@ -22,7 +22,7 @@ class AuthenticatedSessionController extends Controller
             return response()->json(['token' => $token]);
         }
 
-        return response()->json(['message' => 'Invalid credentials'], 401);
+        return response()->json(['message' => 'Неверные учетные данные'], 401);
     }
 
     public function destroy(Request $request)
