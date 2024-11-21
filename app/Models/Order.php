@@ -5,9 +5,6 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 
-
-
-
 class Order extends Model
 {
     protected $fillable = [
@@ -44,28 +41,6 @@ class Order extends Model
         return $this->belongsTo(Restaurant::class);
     }
 
-    /**
-     * Устанавливает следующий статус заказа.
-     *
-     * @param OrderStatus $newStatus
-     * @return void
-     */
-    public function setStatus(OrderStatus $newStatus): void
-    {
-        $this->status = $newStatus->value;
-        $this->save();
-    }
-
-    /**
-     * Проверяет текущий статус.
-     *
-     * @param OrderStatus $status
-     * @return bool
-     */
-    public function isStatus(OrderStatus $status): bool
-    {
-        return $this->status === $status->value;
-    }
 
 
 }

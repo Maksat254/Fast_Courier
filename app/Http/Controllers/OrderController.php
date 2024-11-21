@@ -39,14 +39,7 @@ class OrderController extends Controller
         return response()->json(['message' => 'Нет доступных курьеров для назначения.'], 422);
     }
 
-    public function checkStatus(Request $request, Order $order)
-    {
-        if ($this->orderStatusService->isOrderDelivered($order)) {
-            return response()->json(['message' => 'Заказ доставлен']);
-        }
 
-        return response()->json(['message' => 'заказ не доставлен']);
-    }
 
 
 }

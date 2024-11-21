@@ -26,6 +26,8 @@ return [
 
         'role' => Spatie\Permission\Models\Role::class,
 
+
+        'guards' => ['web', 'api'],
     ],
 
     'table_names' => [

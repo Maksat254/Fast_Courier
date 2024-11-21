@@ -27,7 +27,7 @@ class NewOrderAssigned extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        // Указываем каналы, через которые будет отправлено уведомление
+
         return ['mail', 'database'];
     }
 
@@ -38,7 +38,7 @@ class NewOrderAssigned extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('Новый заказ назначен')
-            ->line('Вам назначен новый заказ. Пожалуйста, подтвердите его в течение 60 секунд.')
+            ->line('Вам назначен новый заказ. Пожалуйста, подтвердите его в течение 30 секунд.')
             ->action('Принять заказ', url('/orders/'.$this->order->id.'/confirm'))
             ->line('Спасибо');
     }
@@ -50,7 +50,7 @@ class NewOrderAssigned extends Notification implements ShouldQueue
     {
         return [
             'order_id' => $this->order->id,
-            'message' => 'Вам назначен новый заказ. Пожалуйста, подтвердите его в течение 60 секунд.',
+            'message' => 'Вам назначен новый заказ. Пожалуйста, подтвердите его в течение 30 секунд.',
         ];
     }
 }

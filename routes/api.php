@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\CourierController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\CourierLocationController;
@@ -16,13 +17,16 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->midd
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+Route::post('/couriers', [CourierController::class, 'createCourier']);
+
+
 
 Route::post('orders', [OrderController::class, 'store']);
 Route::put('orders/{orderId}/reassign', [OrderController::class, 'reassignCourier']);
 Route::put('orders/{orderId}/accept', [OrderController::class, 'acceptOrder']);
 Route::put('orders/{orderId}/confirm', [OrderController::class, 'confirmOrder']);
 
-Route::middleware('auth:sanctum')->post('/courier/update-location', [CourierLocationController::class, 'updateLocation']);
+Route::middleware(['auth:sanctum', 'role:admin'])->post('/admin/couriers/{courierId}/update-location', [AdminController::class, 'updateCourierLocation']);
 
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/restaurants', [RestaurantController::class, 'store']);
@@ -40,5 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('order/{order}/picked-up-from-client', [CourierController::class, 'pickedUpFromClient']);
     Route::put('order/{order}/delivered', [CourierController::class, 'delivered']);
 });
+
+Route::post('/courier/login', [CourierController::class, 'login']);
+
 
 
