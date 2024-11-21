@@ -1,10 +1,9 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\Courier;
+use App\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redis;
 
 class CourierLocationController extends Controller
 {
@@ -15,11 +14,25 @@ class CourierLocationController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        $courier = Courier::findOrFail($request->user()->id);
-        $courier->latitude = $request->latitude;
-        $courier->longitude = $request->longitude;
-        $courier->save();
+        $courierId = $request->user()->id;
 
-        return response()->json(['message' => 'Location updated successfully']);
+
+        $hasActiveOrder = Order::where('courier_id', $courierId)
+            ->whereIn('status', ['Принят', 'Ожидание в ресторане', 'В пути', 'Забрал заказ', 'Прибыл к клиенту',])
+            ->exists();
+
+
+        Redis::hmset("courier:location:{$courierId}", [
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'has_active_order' => $hasActiveOrder,
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+
+        return response()->json([
+            'message' => 'Местоположение успешно обновлено',
+            'has_active_order' => $hasActiveOrder,
+        ]);
     }
+
 }

@@ -2,29 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
+
+
+
 
 class Order extends Model
 {
-
-    const STATUS_NEW = 'Новый заказ';
-    const STATUS_PREPARING = 'Готовится';
-    const STATUS_READY = 'Готов к выдаче';
-    const STATUS_ON_THE_WAY = 'В пути';
-    const STATUS_DELIVERED = 'Доставлено';
-
-
-    const COURIER_STATUS_ASSIGNED = 'Принят';
-    const COURIER_STATUS_WAITING = 'Ожидание в ресторане';
-    const COURIER_STATUS_PICKED_UP = 'Забрал заказ';
-    const COURIER_STATUS_ON_THE_WAY = 'Прибыл к клиенту';
-    const COURIER_STATUS_DELIVERED = 'Доставлено курьером';
-
-
-    const CLIENT_STATUS_PREPARING = 'Ваш заказ готовится';
-    const CLIENT_STATUS_ON_THE_WAY = 'В пути';
-    const CLIENT_STATUS_DELIVERED = 'Доставлено клиенту';
-
     protected $fillable = [
         'client_id',
         'restaurant_id',
@@ -59,10 +44,27 @@ class Order extends Model
         return $this->belongsTo(Restaurant::class);
     }
 
-    public function updateStatus($status)
+    /**
+     * Устанавливает следующий статус заказа.
+     *
+     * @param OrderStatus $newStatus
+     * @return void
+     */
+    public function setStatus(OrderStatus $newStatus): void
     {
-        $this->status = $status;
+        $this->status = $newStatus->value;
         $this->save();
+    }
+
+    /**
+     * Проверяет текущий статус.
+     *
+     * @param OrderStatus $status
+     * @return bool
+     */
+    public function isStatus(OrderStatus $status): bool
+    {
+        return $this->status === $status->value;
     }
 
 

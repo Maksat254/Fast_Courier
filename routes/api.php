@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\CourierController;
 use App\Http\Controllers\Admin\RestaurantController;
 use App\Http\Controllers\CourierLocationController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\RestaurantLocationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -25,8 +24,6 @@ Route::put('orders/{orderId}/confirm', [OrderController::class, 'confirmOrder'])
 
 Route::middleware('auth:sanctum')->post('/courier/update-location', [CourierLocationController::class, 'updateLocation']);
 
-Route::middleware('auth:sanctum')->post('/restaurant/{id}/location', [RestaurantLocationController::class, 'updateLocation']);
-
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/restaurants', [RestaurantController::class, 'store']);
     Route::post('/couriers', [CourierController::class, 'store']);
@@ -37,3 +34,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.
 Route::middleware(['auth:sanctum', 'role:courier'])->group(function () {
     Route::post('/orders/{orderId}/confirm', [OrderController::class, 'confirmOrder']);
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::put('order/{order}/arrived-at-restaurant', [CourierController::class, 'arrivedAtRestaurant']);
+    Route::put('order/{order}/picked-up-from-client', [CourierController::class, 'pickedUpFromClient']);
+    Route::put('order/{order}/delivered', [CourierController::class, 'delivered']);
+});
+
+

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,16 +17,18 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|confirmed|min:8',
+            'address' => 'required|string|max:255'
         ]);
 
-        $user = User::create([
+        $user = Client::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'address' => $request->address,
         ]);
 
         $user->assignRole('client');
 
-        return response()->json(['message' => 'User registered successfully']);
+        return response()->json(['message' => 'Client registered successfully']);
     }
 }

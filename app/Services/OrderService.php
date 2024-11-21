@@ -1,57 +1,53 @@
 <?php
 namespace App\Services;
 
-use App\Models\Courier;
 use App\Models\Order;
 use App\Models\Restaurant;
+use App\Models\Courier;
 
 class OrderService
 {
-    /**
-     * Создаёт новый заказ.
-     */
-    public function createOrder(array $data, Restaurant $restaurant): Order
-    {
-        $order = new Order();
-        $order->client_id = $data['client_id'];
-        $order->restaurant_id = $data['restaurant_id'];
-        $order->delivery_address = $data['delivery_address'];
-        $order->pickup_address = $data['pickup_address'];
-        $order->total_amount = $data['total_amount'];
-        $order->status = $data['status'];
-        $order->description = $data['description'] ?? '';
-        $order->courier_accepted = false;
-        $order->save();
+    protected $courierService;
 
-        return $order;
+    public function __construct(CourierService $courierService)
+    {
+        $this->courierService = $courierService;
     }
 
-    /**
-     * Назначает ближайшего курьера для заказа.
-     */
-    public function assignCourierToOrder(Order $order, Restaurant $restaurant): bool
+    public function createOrder($validated)
     {
+        session(['order_status' => $validated['status']]);
+
+        $restaurant = Restaurant::find($validated['restaurant_id']);
         $restaurantLat = $restaurant->latitude;
         $restaurantLon = $restaurant->longitude;
 
-        $courier = Courier::whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->get()
-            ->map(function ($courier) use ($restaurantLat, $restaurantLon) {
-                $courier->distance = calculateDistance($restaurantLat, $restaurantLon, $courier->latitude, $courier->longitude);
-                return $courier;
-            })
-            ->sortBy('distance')
-            ->first();
+
+        $order = new Order();
+        $order->client_id = $validated['client_id'];
+        $order->restaurant_id = $validated['restaurant_id'];
+        $order->delivery_address = $validated['delivery_address'];
+        $order->pickup_address = $validated['pickup_address'];
+        $order->total_amount = $validated['total_amount'];
+        $order->description = $validated['description'] ?? '';
+        $order->courier_accepted = false;
+
+        $order->status = session('order_status');
+
+        $order->save();
+
+
+
+        $courier = $this->courierService->findNearestCourier($restaurantLat, $restaurantLon);
 
         if ($courier) {
             $order->courier_id = $courier->id;
             $order->save();
 
             // $courier->notify(new \App\Notifications\NewOrderAssigned($order));
-            return true;
+            return $order;
         }
 
-        return false;
+        return null;
     }
 }
