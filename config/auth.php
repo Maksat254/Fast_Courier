@@ -15,7 +15,7 @@ return [
 
     'defaults' => [
         'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => 'users', // Указываем явное значение без env
+        'passwords' => 'users',
     ],
 
     /*

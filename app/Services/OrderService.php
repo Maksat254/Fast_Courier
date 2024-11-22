@@ -44,7 +44,7 @@ class OrderService
             $order->courier_id = $courier->id;
             $order->save();
 
-            // $courier->notify(new \App\Notifications\NewOrderAssigned($order));
+             $courier->notify(new \App\Notifications\NewOrderAssigned($order));
             return $order;
         }
 
