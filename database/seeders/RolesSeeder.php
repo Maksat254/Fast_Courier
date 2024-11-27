@@ -14,14 +14,8 @@ class RolesSeeder extends Seeder
      */
     public function run(): void
     {
-
-
-        // Создаем роли
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'courier', 'guard_name' => 'api']);
-        Role::create(['name' => 'client']);
-
-        // Создаем разрешения
-        Permission::create(['name' => 'manage-orders', 'guard_name' => 'api']);
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'client', 'guard_name' => 'clients']);
+        Role::firstOrCreate(['name' => 'courier', 'guard_name' => 'couriers']);
     }
 }

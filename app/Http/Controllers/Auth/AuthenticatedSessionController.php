@@ -20,6 +20,7 @@ class AuthenticatedSessionController extends Controller
 
         if (Auth::guard('clients')->attempt($request->only('email', 'password'))) {
             $client = Auth::guard('clients')->user();
+
             $token = $client->createToken('token_name')->plainTextToken;
 
             return response()->json(['token' => $token]);

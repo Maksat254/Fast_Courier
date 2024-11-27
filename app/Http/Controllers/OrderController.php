@@ -1,10 +1,12 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Jobs\AssignCourierJob;
 use App\Models\Order;
 use App\Services\OrderService;
 use App\Services\OrderStatusService;
 use Illuminate\Http\Request;
+
 
 class OrderController extends Controller
 {
@@ -33,7 +35,9 @@ class OrderController extends Controller
         $order = $this->orderService->createOrder($validated);
 
         if ($order) {
-            return response()->json(['message' => 'Заказ создан и передан курьеру.'], 201);
+            AssignCourierJob::dispatch($order);
+
+            return response()->json(['message' => 'Заказ создан. Курьер будет назначен через некоторое время.'], 201);
         }
 
         return response()->json(['message' => 'Нет доступных курьеров для назначения.'], 422);

@@ -20,15 +20,15 @@ class RegisteredUserController extends Controller
             'address' => 'required|string|max:255'
         ]);
 
-        $user = Client::create([
+        $client = Client::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'address' => $request->address,
         ]);
 
-        $user->assignRole('client');
+        $client->assignRole('client');
 
-        return response()->json(['message' => 'Client registered successfully']);
+        return response()->json(['message' => 'Клиент успешно зарегестрирован']);
     }
 }

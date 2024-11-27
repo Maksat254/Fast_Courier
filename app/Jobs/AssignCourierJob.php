@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
+
 class AssignCourierJob implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
@@ -20,58 +21,43 @@ class AssignCourierJob implements ShouldQueue
   protected $radius;
   protected $maxRadius = 7;
 
-  protected function __construct(Order $order, $radius = 1 )
+  public function __construct(Order $order, $radius = 1 )
   {
       $this->order = $order;
       $this->radius = $radius;
   }
 
-  protected function handle(): void
-  {
-      $courier = $this->findCourierInRadius($this->radius);
+    public static function dispatch($order)
+    {
+    }
 
-      if (!$courier && $this->radius < $this->maxRadius);
-      {
-          $this->radius = $this->maxRadius;
-          $courier = $this->findCourierInRadius($this->radius);
-      }
-      if ($courier) {
-          $this->order->courier_id = $courier->id;
-          $this->order->status = 'Ожидаем курьера';
-          $this->order->save();
+    protected function handle(): void
+    {
+        for ($this->radius = 1; $this->radius <= $this->maxRadius; $this->radius++) {
+            $courier = $this->findCourierInRadius($this->radius);
 
+            if ($courier) {
+                $this->order->courier_id = $courier->id;
+                $this->order->status = 'Ожидаем курьера';
+                $this->order->save();
 
-          Notification::send($courier, new NewOrderAssigned($this->order));
-
-
-          $maxWaitTime = 30;
-          $waited = 0;
-
-          while ($waited < $maxWaitTime) {
-              $order = $this->order->fresh();
-
-              if ($order->status !== 'awaiting_confirmation') {
-                  Log::info('Order ID ' . $this->order->id . ' принято курьером ' . $courier->id);
-                  return;
-              }
-
-              sleep(1);
-              $waited++;
-          }
-
-          Log::info('Courier ID ' . $courier->id . ' не принял заказ' . $this->order->id);
-          $this->order->courier_id = null;
-          $this->order->save();
+//                Notification::send($courier, new NewOrderAssigned($this->order));
 
 
-          $this->waitForAcceptance($courier);
-      }else{
-          Log::info('Для назначения заказа не найден доступный курьер');
-      }
-  }
+                Log::info('Order ID ' . $this->order->id . ' назначен курьеру ' . $courier->id);
+                return;
+            }
 
+            Log::info("Курьер не найден в радиусе " . $this->radius . " км.");
+        }
 
-  protected function findCourierInRadius($radius)
+        Log::info('Курьер не найден в радиусе до ' . $this->maxRadius . ' км. Начинаем поиск с 1 км.');
+
+        $this->radius = 1;
+        $this->handle();
+    }
+
+    protected function findCourierInRadius($radius)
   {
       $restaurant = $this->order->restaurant;
 
@@ -102,22 +88,4 @@ class AssignCourierJob implements ShouldQueue
           ->orderBy('distance', 'asc')
           ->first();
   }
-
-  protected function waitForAcceptance($courier)
-  {
-      $startTime = now();
-
-      while (now()->diffInSeconds($startTime) < 30){
-          $order = $this->order->fresh();
-          if ($order->status ===  'ожидание_подтверждения') {
-              sleep(1);
-          } else {
-              return;
-          }
-      }
-
-      Log::info('Курьер не принял заказ в течение 30 секунд, переназначаем заказ');
-      $this->handle();
-  }
-
 }

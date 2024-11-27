@@ -67,6 +67,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\Client::class,
         ],
+        'couriers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Courier::class,
+        ],
     ],
 
     /*
