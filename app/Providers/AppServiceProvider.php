@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -29,4 +30,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
     }
+
+    protected function schedule(Schedule $schedule)
+    {
+        // Планируем выполнение команды каждые 5 минут
+        $schedule->command('orders:update-status')->everyFiveMinutes();
+    }
+
 }

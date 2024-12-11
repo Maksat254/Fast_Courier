@@ -20,8 +20,17 @@ class Courier extends Model
         'longitude',
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 }

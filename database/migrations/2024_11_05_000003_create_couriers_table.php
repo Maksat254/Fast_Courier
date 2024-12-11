@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->integer('order_id')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->string('status')->default(\App\Enums\OrderStatus::NEW->value);
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
             $table->timestamp('timestamp');

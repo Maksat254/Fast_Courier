@@ -9,20 +9,18 @@ class CourierReportController extends Controller
 {
     public function dailyReport(Request $request)
     {
-        $courierId = auth()->id(); // Получаем ID текущего курьера
+        $courierId = auth()->id();
         $today = Carbon::today();
 
-        // Количество заказов за день
+
         $totalOrders = Order::where('courier_id', $courierId)
             ->whereDate('created_at', $today)
             ->count();
 
-        // Заработано денег за день
         $totalEarnings = Order::where('courier_id', $courierId)
             ->whereDate('created_at', $today)
             ->sum('price');
 
-        // Подсчет часов (опционально, если есть время начала/окончания смены)
         $workLogs = CourierWorkLog::where('courier_id', $courierId)
             ->whereDate('start_time', $today)
             ->get();

@@ -20,9 +20,9 @@ return new class extends Migration
             $table->string('delivery_address');
             $table->string('pickup_address');
             $table->text('description')->nullable();
-            $table->string('status')->default('pending');
             $table->decimal('total_amount', 8, 2);
-
+            $table->string('status')->default(\App\Enums\OrderStatus::NEW->value);
+            $table->string('final_status')->nullable();
             $table->timestamps();
         });
     }

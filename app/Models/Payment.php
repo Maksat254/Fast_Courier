@@ -11,6 +11,7 @@ class Payment extends Model
         'courier_id',
         'amount',
         'status',
+        'payment_date',
     ];
 
     public function order()

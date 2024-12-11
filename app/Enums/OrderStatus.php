@@ -11,10 +11,11 @@ enum OrderStatus: string
     case ASSIGNED = 'Принят';
     case WAITING = 'Ожидание в ресторане';
     case PICKED_UP = 'Забрал заказ';
-
+    case CANCELLED = 'Отменено';
 
     public static function all(): array
     {
         return array_column(self::cases(), 'value');
     }
+
 }

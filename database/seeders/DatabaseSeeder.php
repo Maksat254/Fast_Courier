@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Database\Seeders\OrderSeeder;
+use Database\Seeders\RestaurantSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,7 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call([RolesSeeder::class,]);
+        $this->call([
+            RolesSeeder::class,
+            CourierSeeder::class,
+            ClientSeeder::class,
+            RestaurantSeeder::class,
+            OrderSeeder::class,
+        ]);
     }
 }
-

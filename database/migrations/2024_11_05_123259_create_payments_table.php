@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('courier_id')->constrained('couriers')->onDelete('cascade');
+            $table->timestamp('payment_date');
             $table->decimal('amount', 8, 2);
             $table->string('status');
             $table->timestamps();

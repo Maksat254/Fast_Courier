@@ -11,6 +11,7 @@ class Order extends Model
         'client_id',
         'restaurant_id',
         'status',
+        'final_status',
         'delivery_address',
         'pickup_address',
         'total_amount',
@@ -40,7 +41,6 @@ class Order extends Model
     {
         return $this->belongsTo(Restaurant::class);
     }
-
 
 
 }
