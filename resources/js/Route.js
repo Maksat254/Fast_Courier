@@ -73,13 +73,13 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-    const isAuthenticated = !!localStorage.getItem('authToken'); // Токен аутентификации
-    const userRole = localStorage.getItem('userRole'); // Роль пользователя
+    const isAuthenticated = !!localStorage.getItem('authToken');
+    const userRole = localStorage.getItem('userRole');
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next({ path: '/login' }); // Перенаправление на страницу логина
+        next({ path: '/login' });
     } else if (to.meta.adminOnly && userRole !== 'admin') {
-        next({ path: '/unauthorized' }); // Перенаправление для неадминистраторов
+        next({ path: '/unauthorized' });
     } else {
         next();
     }

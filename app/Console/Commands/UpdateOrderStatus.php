@@ -28,14 +28,12 @@ class UpdateOrderStatus extends Command
      */
     public function handle()
     {
-        // Получаем все заказы, созданные более 30 минут назад
         $orders = Order::where('created_at', '<', Carbon::now()->subMinutes(30))
             ->whereIn('status', ['Новый заказ', 'Ваш заказ готовится', 'Готов к выдаче', 'В пути'])
             ->get();
 
         foreach ($orders as $order) {
-            // Обновляем статус заказа
-            $order->status = 'Доставлено'; // Или другой статус, в зависимости от логики
+            $order->status = 'Доставлено';
             $order->save();
             $this->info("Order #{$order->id} status updated to {$order->status}");
         }
