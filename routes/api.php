@@ -25,15 +25,13 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 Route::post('/couriers', [CourierController::class, 'createCourier']);
 
-
-
 Route::post('orders', [OrderController::class, 'store']);
 Route::put('orders/{orderId}/reassign', [OrderController::class, 'reassignCourier']);
 Route::put('orders/{orderId}/accept', [OrderController::class, 'acceptOrder']);
 Route::put('orders/{orderId}/confirm', [OrderController::class, 'confirmOrder']);
 
-Route::middleware(['auth:sanctum',])->post('/admin/couriers/{courierId}/update-location', [AdminController::class, 'updateCourierLocation']);
-Route::middleware(['auth:sanctum',])->post('client/couriers/{courierId}/update-location', [ClientController::class, 'updateCourierLocation']);
+Route::middleware(['auth:sanctum'])->post('/admin/couriers/{courierId}/update-location', [AdminController::class, 'updateCourierLocation']);
+Route::middleware(['auth:sanctum'])->post('client/couriers/{courierId}/update-location', [ClientController::class, 'updateCourierLocation']);
 
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/restaurants', [RestaurantController::class, 'store']);
@@ -76,7 +74,6 @@ Route::get('/financial-reports', [FinancialReportController::class, 'getReport']
 Route::get('/api/admin/reports/orders', [OrderReportController::class, 'getOrders']);
 Route::get('/orders/reports/orders', [OrderController::class, 'getReportTable'])->name('orders.report.table');
 
-
 Route::prefix('admin/couriers')->group(function () {
     Route::get('/', [CourierController::class, 'index']);
     Route::post('/', [CourierController::class, 'store']);
@@ -86,14 +83,11 @@ Route::prefix('admin/couriers')->group(function () {
     Route::post('/{courier}/end-day', [CourierController::class, 'endDay']);
 });
 
-
-
 Route::prefix('courier')->group(function () {
     Route::post('/login', [AuthCouriersController::class, 'login']);
     Route::post('/logout', [AuthCouriersController::class, 'logout'])->middleware('auth:courier');
     Route::get('/profile', [AuthCouriersController::class, 'profile'])->middleware('auth:courier');
 });
-
 
 Route::prefix('admin')->group(function () {
     Route::get('/couriers', [CourierManagementController::class, 'index']);

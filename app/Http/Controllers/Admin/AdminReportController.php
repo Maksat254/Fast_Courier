@@ -32,7 +32,6 @@ class AdminReportController extends Controller
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth());
         $filters = $request->input('filters', []);
 
-        // Общие доходы от доставок
         $totalRevenue = 0;
         if (isset($filters['totalRevenue']) && $filters['totalRevenue']) {
             $totalRevenue = Order::whereBetween('created_at', [$startDate, $endDate])
@@ -40,7 +39,6 @@ class AdminReportController extends Controller
                 ->sum('price');
         }
 
-        // Средняя оплата за доставку
         $averagePayment = 0;
         if (isset($filters['averagePayment']) && $filters['averagePayment']) {
             $averagePayment = Order::whereBetween('created_at', [$startDate, $endDate])
@@ -48,14 +46,12 @@ class AdminReportController extends Controller
                 ->avg('price');
         }
 
-        // Зарплата курьеров
         $couriersSalary = 0;
         if (isset($filters['couriersSalary']) && $filters['couriersSalary']) {
             $couriersSalary = Payment::whereBetween('payment_date', [$startDate, $endDate])
                 ->sum('amount');
         }
 
-        // История выплат курьерам
         $paymentsHistory = [];
         if (isset($filters['paymentsHistory']) && $filters['paymentsHistory']) {
             $paymentsHistory = Payment::whereBetween('payment_date', [$startDate, $endDate])

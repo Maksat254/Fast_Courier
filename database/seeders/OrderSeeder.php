@@ -11,6 +11,7 @@ use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
 {
+
     public function run()
     {
         $faker = Faker::create();
@@ -34,10 +35,11 @@ class OrderSeeder extends Seeder
                 'client_id' => Client::inRandomOrder()->first()->id,
                 'restaurant_id' => Restaurant::inRandomOrder()->first()->id,
                 'courier_id' => Courier::active()->inRandomOrder()->first()->id,
-                'total_amount' => $faker->randomFloat(2, 5, 100),
-                'status' => $status->value,  // Теперь передаем значение объекта, а не строку
+                'product_amount' => $faker->randomFloat(2, 5, 100),
+                'delivery_amount' => $faker->randomFloat(2, 5, 100),
+                'fee_amount' => $faker->randomFloat(2, 5, 100),
+                'status' => $status->value,
                 'delivery_address' => $faker->address,
-                'pickup_address' => $faker->address,
                 'created_at' => $faker->dateTimeThisYear,
                 'updated_at' => $faker->dateTimeThisYear,
             ]);

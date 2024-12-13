@@ -34,7 +34,6 @@ class OrderController extends Controller
             'client_id' => 'required|exists:clients,id',
             'restaurant_id' => 'required|exists:restaurants,id',
             'delivery_address' => 'required|string',
-            'pickup_address' => 'required|string',
             'total_amount' => 'required|numeric',
             'status' => ['required', 'string', function ($attribute, $value, $fail) {
                 if (!in_array($value, OrderStatus::all())) {

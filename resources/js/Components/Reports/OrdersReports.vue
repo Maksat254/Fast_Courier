@@ -54,6 +54,7 @@
                         <td>{{ row.created_at }}</td>
                         <td>{{ row.completed_at }}</td>
                         <td>{{ row.total.amount }}</td>
+                        <td>{{ row.product }}</td>
                     </tr>
                     </tbody>
                 </table>
